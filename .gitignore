@@ -1,0 +1,33 @@
+# 环境变量与敏感凭据 (严防 API Key 泄露！)
+.env
+*.env
+!.env.example
+
+# Python 虚拟环境与依赖缓存
+.venv/
+env/
+venv/
+ENV/
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+
+# 测试与代码分析缓存
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 系统生成临时文件与编辑器文件
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 临时抓包与下载包
+/tmp/
+*.tar.gz

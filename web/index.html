@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jev 中国象棋 - 人机对弈系统</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- 顶部导航 -->
+  <header>
+    <div class="logo-group">
+      <div class="logo-badge">象</div>
+      <div class="logo-text">
+        <h1>Jev 象棋大师</h1>
+        <p>基于 OpenRouter TypeSafe Jev 结构化决策模型</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span id="key-status-badge" class="badge-tag">正在检测服务...</span>
+      <button id="btn-preview-prompt">📋 实时 Prompt 预览</button>
+      <button id="btn-settings">⚙️ 设置</button>
+    </div>
+  </header>
+
+  <!-- 主体工作区 -->
+  <main class="main-container">
+
+    <!-- 左侧：棋盘与落子区 -->
+    <section class="board-section">
+      <div class="board-wrapper">
+        <div id="chess-board" class="board-container">
+          <!-- 由 BoardUI 动态渲染 SVG 底层网格与矢量棋子 -->
+        </div>
+      </div>
+
+      <!-- 快捷操作区 -->
+      <div class="board-controls">
+        <button id="btn-new-game" class="primary">🔄 重新开局</button>
+        <button id="btn-undo">↩️ 悔棋 (Undo)</button>
+        <button id="btn-ai-move">🤖 Jev 立即行棋</button>
+      </div>
+    </section>
+
+    <!-- 右侧：状态控制与 Jev 看板区 -->
+    <aside class="sidebar-section">
+
+      <!-- 双方角色卡片 -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <span class="panel-title">⚔️ 对弈双方</span>
+          <span id="current-round-text" style="font-size: 12px; color: var(--text-secondary);">第 1 回合</span>
+        </div>
+
+        <div class="players-status">
+          <div id="player-box-red" class="player-box active-turn">
+            <div class="player-info">
+              <span class="player-name" style="color: #ff9191;">红方 (帅)</span>
+              <span class="player-role">玩家</span>
+            </div>
+            <span class="turn-pill">先行执子</span>
+          </div>
+
+          <div id="player-box-black" class="player-box">
+            <div class="player-info">
+              <span class="player-name" style="color: #dfd8cb;">黑方 (將)</span>
+              <span class="player-role">Jev AI</span>
+            </div>
+            <span class="turn-pill">后行应对</span>
+          </div>
+        </div>
+
+        <!-- 局势通告条 -->
+        <div id="status-banner" class="game-status-banner">
+          对弈进行中，红方先行
+        </div>
+      </div>
+
+      <!-- Jev 决策观测看板（核心亮点） -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <span class="panel-title">🧠 Jev 模型思考观测站</span>
+          <span id="ai-engine-tag" style="font-size: 11px; color: var(--accent-gold);">System One 决策</span>
+        </div>
+
+        <div class="jev-thought-box">
+          <!-- 置信度评分 -->
+          <div class="confidence-meter">
+            <div class="confidence-header">
+              <span>决策置信度 (Confidence)</span>
+              <span id="confidence-text">--%</span>
+            </div>
+            <div class="confidence-bar-bg">
+              <div id="confidence-fill" class="confidence-bar-fill"></div>
+            </div>
+          </div>
+
+          <!-- 候选走法胜率/概率分布柱状图 -->
+          <div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">
+              Top 候选着法概率分布 (Probabilities)
+            </div>
+            <div id="prob-list" class="prob-list">
+              <div style="color: var(--text-secondary); font-size: 12px; text-align: center; padding: 15px;">
+                AI 尚未行棋，等待首次评估...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 历史棋谱记录 -->
+      <div class="panel-card" style="flex: 1;">
+        <div class="panel-header">
+          <span class="panel-title">📜 中文棋谱记录</span>
+        </div>
+        <div id="history-list" class="history-list">
+          <div style="color: var(--text-secondary); text-align: center; padding: 10px;">暂无历史着法</div>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- 模态框 1：Prompt 实时预览 -->
+  <div id="modal-preview" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📋 实时 Prompt / Jev Payload 数据预览</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-secondary); margin-bottom: 8px;">
+          以下为系统在当前棋盘局面下，由后端实时生成并传给 Jev 模型的完整 2D 文本空间矩阵、大局特征与全部合法候选 Criteria：
+        </p>
+        <pre id="preview-content" class="code-view">加载中...</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态框 2：配置设置 -->
+  <div id="modal-settings" class="modal-overlay">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3>⚙️ Jev 模型与系统设置</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="input-api-key">OpenRouter / TypeSafe API Key</label>
+          <input type="password" id="input-api-key" placeholder="sk-or-v1-...">
+          <small style="color: var(--text-secondary); font-size: 11px;">留空则继续使用当前环境变量中的配置</small>
+        </div>
+        <div class="form-group">
+          <label for="input-model">Jev 模型型号</label>
+          <input type="text" id="input-model" value="typesafe/jev-1.13">
+          <small style="color: var(--text-secondary); font-size: 11px;">支持 typesafe/jev-1.13 或 typesafe/jev-latest</small>
+        </div>
+        <div class="form-group">
+          <label for="input-base-url">Base URL</label>
+          <input type="text" id="input-base-url" value="https://openrouter.ai/api">
+        </div>
+        <button id="btn-save-settings" class="primary" style="margin-top: 12px; width: 100%; justify-content: center;">
+          💾 保存配置
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 脚本加载 -->
+  <script src="js/pieces_svg.js"></script>
+  <script src="js/board.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
