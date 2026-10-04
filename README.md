@@ -1,6 +1,6 @@
 # Jev Chinese Chess
 
-基于 [OpenRouter Jev 结构化决策模型](https://openrouter.ai/) 的中国象棋人机对弈系统。用Jev和你下象棋！
+基于Jev模型的中国象棋人机对弈系统。用Jev和你下象棋！
 
 ---
 
